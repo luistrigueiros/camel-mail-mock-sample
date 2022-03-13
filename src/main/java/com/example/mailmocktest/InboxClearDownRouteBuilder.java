@@ -26,6 +26,9 @@ public class InboxClearDownRouteBuilder extends RouteBuilder {
 
   private void logger(Exchange exchange) {
     Message in = exchange.getIn();
-    log.info("Processing [{}]",in.getBody(String.class));
+    String to = in.getHeader("To", String.class);
+    String from = in.getHeader("from", String.class);
+    String id = in.getHeader("Message-ID", String.class);
+    log.info("Processing email from=[{}], to=[{}] id=[{}]",from, to, id);
   }
 }
