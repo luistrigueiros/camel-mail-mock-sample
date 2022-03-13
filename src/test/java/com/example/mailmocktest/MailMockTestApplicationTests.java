@@ -1,20 +1,17 @@
 package com.example.mailmocktest;
 
+import java.util.concurrent.TimeUnit;
 import org.apache.camel.CamelContext;
-import org.apache.camel.ConsumerTemplate;
 import org.apache.camel.FluentProducerTemplate;
-import org.apache.camel.ProducerTemplate;
+import org.apache.camel.builder.NotifyBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 class MailMockTestApplicationTests {
-  private static final Logger logger = LoggerFactory.getLogger(MailMockTestApplicationTests.class);
   @Autowired
   private InboxConfig inboxConfig;
 
@@ -31,21 +28,11 @@ class MailMockTestApplicationTests {
   void sendEmailBatch() {
     int count = 10;
     sendMessages(count);
-    ConsumerTemplate consumerTemplate = camelContext.createConsumerTemplate();
-    int receiveTry = 0;
-    while (true) {
-      if (count == 0) {
-        break;
-      }
-      if (receiveTry > 20) {
-        throw new IllegalStateException("Tried to many times to receive all the messages");
-      }
-      String msg = consumerTemplate.receiveBody(inboxConfig.outputEndpoint, 300, String.class);
-      logger.debug("Got {}", msg);
-      ++receiveTry;
-      --count;
-    }
-    logger.info("Done");
+    NotifyBuilder notify = new NotifyBuilder(camelContext)
+        .from(inboxConfig.outputEndpoint)
+        .whenReceived(count)
+        .create();
+    notify.matches(20, TimeUnit.SECONDS);
   }
 
   public void sendMessages(int count) {
