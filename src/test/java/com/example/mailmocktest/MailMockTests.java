@@ -1,42 +1,44 @@
 package com.example.mailmocktest;
 
 import javax.mail.Message;
-import org.apache.camel.ProducerTemplate;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.camel.FluentProducerTemplate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.jvnet.mock_javamail.Mailbox;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+@Slf4j
 @SpringBootTest
 class MailMockTests {
 
-	@Autowired
-	private ProducerTemplate producerTemplate;
+  @Autowired
+  private FluentProducerTemplate producerTemplate;
 
-	@BeforeEach
-	void beforeTest() {
-		Assertions.assertNotNull(producerTemplate);
-	}
+  @BeforeEach
+  void beforeTest() {
+    Assertions.assertNotNull(producerTemplate);
+  }
 
-	@Test
-	void contextLoads() throws Exception {
-		String body = "This is a test email";
-		producerTemplate.sendBody("smtp://james@myhost", body);
-		Mailbox mailbox = Mailbox.get("james@myhost");
-		Integer size = mailbox.size();
-		mailbox.forEach(this::printMessage);
-		Assertions.assertTrue(size> 0);
-		System.out.printf("Done");
-	}
+  @Test
+  @DisplayName("Should be able to send and receive email in mock mail box")
+  void simpleMailMockTest() throws Exception {
+    String body = "This is a test email";
+    producerTemplate.to("smtp://james@myhost").withBody(body).send();
+    Mailbox mailbox = Mailbox.get("james@myhost");
+    Integer size = mailbox.size();
+    mailbox.forEach(this::printMessage);
+    Assertions.assertTrue(size > 0);
+    log.debug("Done");
+  }
 
-	private void printMessage(Message message) {
-			try {
-				String s = message.getContent().toString();
-				System.out.printf(s);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-	}
+  @SneakyThrows
+  private void printMessage(Message message) {
+    String s = message.getContent().toString();
+    log.debug(s);
+  }
 }
