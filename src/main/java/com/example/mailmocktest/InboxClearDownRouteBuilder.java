@@ -4,24 +4,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.builder.RouteBuilder;
-import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
 public class InboxClearDownRouteBuilder extends RouteBuilder {
 
-  private final InboxConfig inboxConfig;
+  private final String inputEndpoint;
+  private final String outputEndpoint;
 
-  public InboxClearDownRouteBuilder(InboxConfig inboxConfig) {
-    this.inboxConfig = inboxConfig;
+  public InboxClearDownRouteBuilder(String inputEndpoint, String outputEndpoint) {
+    this.inputEndpoint = inputEndpoint;
+    this.outputEndpoint = outputEndpoint;
   }
+
 
   @Override
   public void configure() throws Exception {
-    from(inboxConfig.inboxEndpoint())
+    from(inputEndpoint)
         .id("INBOX_CLEAR_DOWN_ROUTE")
         .process(this::logger)
-        .to(inboxConfig.outputEndpoint);
+        .to(outputEndpoint);
   }
 
   private void logger(Exchange exchange) {
@@ -29,6 +30,6 @@ public class InboxClearDownRouteBuilder extends RouteBuilder {
     String to = in.getHeader("To", String.class);
     String from = in.getHeader("from", String.class);
     String id = in.getHeader("Message-ID", String.class);
-    log.info("Processing email from=[{}], to=[{}] id=[{}]",from, to, id);
+    log.info("Processing email from=[{}], to=[{}] id=[{}]", from, to, id);
   }
 }

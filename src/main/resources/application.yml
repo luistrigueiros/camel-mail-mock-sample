@@ -8,4 +8,6 @@ logging:
 inboxConfig:
   host: myhost
   user: james
+  sendEndpoint: smtp://${inboxConfig.user}@${inboxConfig.host}
+  inputEndpoint: imap://${inboxConfig.user}@${inboxConfig.host}
   outputEndpoint: vm:output

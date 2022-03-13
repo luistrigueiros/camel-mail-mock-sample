@@ -1,24 +1,21 @@
 package com.example.mailmocktest;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@Component
+@Configuration
 public class InboxConfig {
-  @Value("${inboxConfig.host}")
-  public String host;
 
-  @Value("${inboxConfig.user}")
-  public String user;
+  @Value("${inboxConfig.inputEndpoint}")
+  public String inputEndpoint;
+
 
   @Value("${inboxConfig.outputEndpoint}")
   public String outputEndpoint;
 
-  public String inboxEndpoint() {
-    return String.format("imap://%s@%s", user, host);
-  }
-
-  public String sendEndpoint() {
-    return String.format("smtp://%s@%s", user, host);
+  @Bean
+  InboxClearDownRouteBuilder inboxClearDownRouteBuilder() {
+    return new InboxClearDownRouteBuilder(inputEndpoint, outputEndpoint);
   }
 }
