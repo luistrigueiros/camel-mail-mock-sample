@@ -1,18 +1,28 @@
 package com.example.mailmocktest;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.concurrent.TimeUnit;
 import org.apache.camel.CamelContext;
 import org.apache.camel.FluentProducerTemplate;
 import org.apache.camel.builder.NotifyBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.jvnet.mock_javamail.Mailbox;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 class MailMockTestApplicationTests {
+
+  @Value("${inboxConfig.host}")
+  public String host;
+
+  @Value("${inboxConfig.user}")
+  public String user;
 
   @Value("${inboxConfig.sendEndpoint}")
   public String sendEndpoint;
@@ -30,10 +40,13 @@ class MailMockTestApplicationTests {
 
 
   @Test
-  void sendEmailBatch() {
+  @DisplayName("Send a batch of email, wait for then to processed and assert that the mailbox is empty")
+  void sendEmailBatch() throws Exception {
     int count = 10;
     sendMessages(count);
     assertBatchCompletes(count);
+    Mailbox mailbox = Mailbox.get(user + "@" + host);
+    assertEquals(0, mailbox.size());
   }
 
   private void assertBatchCompletes(int count) {
