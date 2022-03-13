@@ -4,24 +4,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.builder.RouteBuilder;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 public class InboxClearDownRouteBuilder extends RouteBuilder {
 
-  @Value("${inboxClearDownRouteBuilder.inboxEndpoint}")
-  public String inboxEndpoint;
-  @Value("${inboxClearDownRouteBuilder.outputEndpoint}")
-  public String outputEndpoint;
+  private final InboxConfig inboxConfig;
+
+  public InboxClearDownRouteBuilder(InboxConfig inboxConfig) {
+    this.inboxConfig = inboxConfig;
+  }
 
   @Override
   public void configure() throws Exception {
-    log.info("Configuring ...");
-    from(inboxEndpoint)
+    from(inboxConfig.inboxEndpoint())
+        .id("INBOX_CLEAR_DOWN_ROUTE")
         .process(this::logger)
-        .to(outputEndpoint);
+        .to(inboxConfig.outputEndpoint);
   }
 
   private void logger(Exchange exchange) {

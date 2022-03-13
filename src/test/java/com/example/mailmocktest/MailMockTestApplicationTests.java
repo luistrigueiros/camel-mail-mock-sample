@@ -4,23 +4,28 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 class MailMockTestApplicationTests {
-
   @Autowired
-  private ProducerTemplate producerTemplate;
+  private InboxConfig inboxConfig;
+
   @Autowired
   private CamelContext camelContext;
 
-  @Test
-  void contextLoads() {
-    Assertions.assertNotNull(producerTemplate);
+  @BeforeEach
+  void beforeTest() {
     Assertions.assertNotNull(camelContext);
-    MockEndpoint mockEndpoint = camelContext.getEndpoint("mock:output", MockEndpoint.class);
+  }
+
+
+  @Test
+  void sendBatchOfEmail() {
+    MockEndpoint mockEndpoint = camelContext.getEndpoint(inboxConfig.outputEndpoint, MockEndpoint.class);
     int count = 10;
     sendMessages(count);
     mockEndpoint.expectedMessageCount(1);
@@ -28,8 +33,9 @@ class MailMockTestApplicationTests {
   }
 
   public void sendMessages(int count) {
+    ProducerTemplate producerTemplate = camelContext.createProducerTemplate();
     for (int i = 0; i < count; ++i) {
-      producerTemplate.sendBody("smtp://james@myhost", String.format("This is a test email#%d", i));
+      producerTemplate.sendBody(inboxConfig.sendEndpoint(), String.format("This is a test email#%d", i));
     }
   }
 }
